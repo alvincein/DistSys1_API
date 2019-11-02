@@ -19,6 +19,7 @@ router.get('/balance', (req, res) => {
             })
         }
         else{
+            if(row.date)
             res.json({
                 "message":"success",
                 "data":row
@@ -38,14 +39,19 @@ router.post('/withdraw', (req, res) => {
           return;
         }
         else{
-            if(row.balance >=20){
+            if(row.balance - parseInt(req.body.amount) >=0 && row.daily_limit + parseInt(req.body.amount) <=2000){
+                if(canBeDivided(req.body.amount)){
                 newBalance = row.balance - req.body.amount;
-                console.log(newBalance);
+                newDailyLimit = parseInt(row.daily_limit) + parseInt(req.body.amount);
+                date = new Date();
+                console.log(date);
                 db.run(
                     `UPDATE atm set 
-                    balance = COALESCE(?,balance)
+                    balance = COALESCE(?,balance),
+                    daily_limit = COALESCE(?,daily_limit),
+                    date = COALESCE(?,date)
                     WHERE id = ?`,
-                    [newBalance, req.body.id],
+                    [newBalance, newDailyLimit, date, req.body.id],
                     function (err, result) {
                         if (err){
                             res.status(400).json({"error": res.message})
@@ -57,6 +63,19 @@ router.post('/withdraw', (req, res) => {
                             changes: this.changes
                         })
                 });
+                }
+                else{
+                    res.status(400).send({
+                        message: "error",
+                        error: "Λάθος ποσό!"
+                    })
+                }
+            }
+            else {
+                res.status(400).send({
+                    message: "error",
+                    error: "Λάθος ποσό!"
+                })
             }
         }
       });
@@ -72,29 +91,36 @@ router.post('/deposit', (req, res) => {
         return;
         }
         else{
-                newBalance = parseInt(row.balance) + parseInt(req.body.amount);
-                console.log(newBalance);
-                db.run(
-                    `UPDATE atm set 
-                    balance = COALESCE(?,balance)
-                    WHERE id = ?`,
-                    [newBalance, req.body.id],
-                    function (err, result) {
-                        if (err){
-                            res.status(400).json({"error": res.message})
-                            return;
-                        }
-                        res.json({
-                            message: "success",
-                            data: newBalance,
-                            changes: this.changes
-                        })
+            if(parseInt(req.body.amount)%5 == 0){
+            newBalance = parseInt(row.balance) + parseInt(req.body.amount);
+            db.run(
+                `UPDATE atm set 
+                balance = COALESCE(?,balance)
+                WHERE id = ?`,
+                [newBalance, req.body.id],
+                function (err, result) {
+                    if (err){
+                        res.status(400).json({"error": res.message})
+                        return;
+                    }
+                    res.json({
+                        message: "success",
+                        data: newBalance,
+                        changes: this.changes
+                    })
                 });
+            }
+            else{
+                res.status(400).send({
+                    message: "error",
+                    error: "Λάθος ποσό! Το ποσό κατάθεσης πρέπει να είναι πολλαπλάσιο του 5."
+                })
+            }
         }
     });
 })
 
-function canBeDivided (amount){
+function canBeDivided(amount){
 
     if(amount%20==0){
         return true;
@@ -105,13 +131,8 @@ function canBeDivided (amount){
     if(temp%20==0){
         return true;
     }
-    else {
-        if(temp%10==0){
-            return true;
-        }
-        else {return false;}
-        
-    }
+    
+    return false;
 }
 
 function getDate(){
