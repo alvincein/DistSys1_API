@@ -1,10 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../../database')
-var md5 = require("md5")
 
 
-    // Get single member
+    // Get single member by id
     router.get('/:id', (req, res) => {
     var sql = "select * from atm where id = ?"
     var params = [req.params.id]
@@ -28,7 +27,7 @@ var md5 = require("md5")
       });
     });
 
-    // Api get members
+    // Get all members
     router.get('/' , (req, res, next) => {
         var sql = "select * from atm"
         var params = []

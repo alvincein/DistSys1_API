@@ -1,5 +1,4 @@
 var sqlite3 = require('sqlite3').verbose()
-var md5 = require('md5')
 
 const DBSOURCE = "db.sqlite"
 
@@ -24,8 +23,8 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
             }else{
                 // Table just created, creating some rows
                 var insert = 'INSERT INTO atm (name, surname, balance, limit, date) VALUES (?,?,?,?,?)'
-                db.run(insert, ["Γιώργος","Καραγιάννης",2000,0,null])
-                db.run(insert, ["Μήτσος","Μπάρμπας",1000,0,null])
+                db.run(insert, ["Γιώργος","Καραγιάννης",2000,0,"1/1/2000"])
+                db.run(insert, ["Μήτσος","Μπάρμπας",1000,0,"1/1/2000"])
             }
         });  
     }

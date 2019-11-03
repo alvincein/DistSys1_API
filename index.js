@@ -2,7 +2,6 @@ const express = require('express')
 const app = express();
 const port = process.env.PORT || 8000;
 const path = require('path');
-const dao = require('./database')
     
     var bodyParser = require("body-parser");
     app.use(bodyParser.urlencoded({ extended: false }));
@@ -23,7 +22,7 @@ const dao = require('./database')
     // Insert here other API endpoints
     // Members api routes
     app.use('/api/members', require('./routes/api/members'));
-    
+    // Actions' routes
     app.use('/api' , require('./routes/api/actions'))
 
     // Default response for any other request
