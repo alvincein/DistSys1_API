@@ -5,6 +5,9 @@
 * [API] https://distsys-api.herokuapp.com/
 * [CLIENT] https://distsys-client.herokuapp.com/
 
+Για την εκτέλεση τους τοπικά προυποθέτει ο χρήστης να έχει NodeJS.
+* [NODEJS] https://nodejs.org/en/download/package-manager/
+
 ## API
 Το back-end έχει υλοιποιηθεί σε Express JS ένα απλό framework της Javascript.
 
