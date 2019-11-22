@@ -5,6 +5,11 @@
 * [API] https://distsys-api.herokuapp.com/
 * [CLIENT] https://distsys-client.herokuapp.com/
 
+
+#### REPOS
+* [API REPO] https://github.com/alvincein/DistSys1_API
+* [CLIENT REPO] https://github.com/alvincein/DistSys1_Client
+
 Για την εκτέλεση τους τοπικά προυποθέτει ο χρήστης να έχει NodeJS.
 * [NODEJS] https://nodejs.org/en/download/package-manager/
 
