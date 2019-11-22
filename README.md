@@ -2,7 +2,7 @@
 ###### *Παπακωνσταντίνου Θοδωρής - dai16253*
 
 Το API και ο Client είναι διαθέσιμα προς εκτέλεση και διαδικτυακά στα αντίστοιχα links:
-* [API] https://dist-sys-1.herokuapp.com/
+* [API] https://distsys-api.herokuapp.com/
 * [CLIENT] https://distsys-client.herokuapp.com/
 
 * Προς το παρόν υπάρχει ένα πρόβλημα που δεν επιτρέπει την επικοινωνία Client και Server λόγω απώλειας CORS. Το πρόβλημα αυτό λύνεται εύκολα με την εγκατάσταση ενός add-on για το Mozilla [CORS Everywhere](https://addons.mozilla.org/el/firefox/addon/cors-everywhere/)*
