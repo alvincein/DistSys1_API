@@ -5,7 +5,7 @@
 * [API] https://distsys-api.herokuapp.com/
 * [CLIENT] https://distsys-client.herokuapp.com/
 
-* Προς το παρόν υπάρχει ένα πρόβλημα που δεν επιτρέπει την επικοινωνία Client και Server λόγω απώλειας CORS. Το πρόβλημα αυτό λύνεται εύκολα με την εγκατάσταση ενός add-on για το Mozilla [CORS Everywhere](https://addons.mozilla.org/el/firefox/addon/cors-everywhere/)*
+-Προς το παρόν υπάρχει ένα πρόβλημα που δεν επιτρέπει την επικοινωνία Client και Server λόγω απώλειας CORS. Το πρόβλημα αυτό λύνεται εύκολα με την εγκατάσταση ενός add-on για το Mozilla [CORS Everywhere](https://addons.mozilla.org/el/firefox/addon/cors-everywhere/)-
 
 ## API
 Το back-end έχει υλοιποιηθεί σε Express JS ένα απλό framework της Javascript.
