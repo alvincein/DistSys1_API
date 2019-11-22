@@ -1,14 +1,84 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../../database')
+const functions = require('./functions')
 
-// Returns user's balance
-// [GET METHOD],[PARAMETERS] => ID (in request's headers section)
-router.get('/balance', (req, res) => {
+// RPC SERVER
+// Not a classic rpc. This rpc uses slightly webservices for easiest connection with clients [basicly JSONrpc].
+// There's a specific address for clients to request rpc calls [localhost:8000/rpc]
+// They can only do POST calls and in these calls they have to specify what method they want to run.
+// They must pass down the method through body's request as you can see below. (as json data)
 
+// When a request arrives, this method checks request's parameter named "method"
+// and runs a specific part of code. [METHOD]
+router.post('/rpc', (req, res) => {
+
+    if(req.body.method === "balance")
+        balance(req, res);
+    else if(req.body.method === "withdraw")
+        withdraw(req, res);
+    else if(req.body.method === "deposit")
+        deposit(req, res);
+    else if(req.body.method === "getUser")
+        getUser(req, res);
+    else {
+        // Error catching in case of bad request
+        if(req.body.method !== undefined){
+        res.status(400).json({"error":"Probably method " + req.body.method + " doesn't exist in this server."});
+            return;
+        }
+        else {
+            res.status(400).json({"error":err.message})
+        }
+    }
+
+})
+
+// Get User Method
+// REQUIREMENTS
+/*  body : {
+        method : "getUser"
+        id : ...
+    }
+*/ 
+function getUser(req, res){
+
+    var sql = "select * from atm where id = ?"
+    var params = [req.body.id]
+    // Request user from db
+    db.get(sql, params, (err, row) => {
+        if (err) {
+          res.status(400).json({"error":err.message});
+          return;
+        }
+        // If there's no user with id of...
+        if(row === undefined){
+            res.json({
+                "message":"error",
+                "error":("No user with id " + req.params.id)
+            })
+        }
+        // If everything's fine
+        else{
+            res.json({
+                "message":"success",
+                "data":row
+            })
+        }
+      });
+}
+
+// Balance Method
+// REQUIREMENTS
+/*  body : {
+        method : "balance"
+        id : ...
+    }
+*/ 
+function balance(req, res){
     // sqlite query
     var sql = "select balance from atm where id = ?";
-    var params = [req.headers.id];
+    var params = [req.body.id];
     // Get balance from SQLite db
     db.get(sql, params, (err, row) => {
         if (err) {
@@ -19,7 +89,7 @@ router.get('/balance', (req, res) => {
             // If user doesn't exist, returns error message
             res.status(400).send({
                 "message":"error",
-                "error":("No user with id " + req.headers.id)
+                "error":("No user with id " + req.body.id)
             })
         }
         else {
@@ -30,14 +100,17 @@ router.get('/balance', (req, res) => {
             })
         }
       });
+}
 
-});
-
-// [POST METHOD],[PARAMETERS] => ID, AMOUNT (in request's body section)
-// [RESPONSE] => MESSAGE("ERROR" OR "SUCCESS"), DATA(BALANCE)
-// Withdraws a given amount from a given user
-router.post('/withdraw', (req, res) => {
-    // SQLite query , returns user's row for a given id
+// Withdraw method
+// REQUIREMENTS
+/*  body : {
+        method : "withdraw"
+        id : ...
+        amount : ...
+    }
+*/ 
+function withdraw(req, res){
     var sql = "select * from atm where id = ?"
     var params = [req.body.id]
     db.get(sql, params, (err, row) => {
@@ -48,11 +121,11 @@ router.post('/withdraw', (req, res) => {
         }
         else{
             // Method that checks if daily limit needs to be reseted
-            resetDailyLimit(req.body.id, row.date);
+            functions.resetDailyLimit(req.body.id, row.date);
 
-            if(isNewBalancePositive(row.balance,parseInt(req.body.amount)) && isLimitReached(row.daily_limit,parseInt(req.body.amount))){
+            if(functions.isNewBalancePositive(row.balance,parseInt(req.body.amount)) && functions.isLimitReached(row.daily_limit,parseInt(req.body.amount))){
 
-                if(canBeDivided(req.body.amount)){
+                if(functions.canBeDivided(req.body.amount)){
                     newBalance = row.balance - req.body.amount;
                     newDailyLimit = parseInt(row.daily_limit) + parseInt(req.body.amount);
 
@@ -87,12 +160,14 @@ router.post('/withdraw', (req, res) => {
                 }
             }
             else {
+                // Error for reaching daily limit
                 if(row.daily_limit === 2000){
                     res.status(400).send({
                         message: "error",
                         error: "Έφτασες το μέγιστο όριο ημερήσιας ανάληψης!"
                     })
                 } else {
+                    // Error for wrong amount requested
                     res.status(400).send({
                         message: "error",
                         error: "Λάθος ποσό!"
@@ -101,16 +176,19 @@ router.post('/withdraw', (req, res) => {
             }
         }
       });
-})
+}
 
-// [POST METHOD],[PARAMETERS] => ID, AMOUNT (in request's body section)
-// [RESPONSE] => MESSAGE("ERROR" OR "SUCCESS"), DATA(BALANCE)
-// Deposits a given amount to a given user
-router.post('/deposit', (req, res) => {
+// Deposit Method
+// REQUIREMENTS
+/*  body : {
+        method : "deposit"
+        id : ...
+        amount : ...
+    }
+*/ 
+function deposit(req,res){
     var sql = "select * from atm where id = ?"
     var params = [req.body.id]
-
-        console.log("im here");
 
         db.get(sql, params, (err, row) => {
             if (err) {
@@ -152,72 +230,8 @@ router.post('/deposit', (req, res) => {
                 }
             }
         });
-
-})
-
-// Checks if the amount that user's asking to withdraw can be given in 20 and 50 euro bills
-function canBeDivided(amount){
-
-    // Return only 20 euro bills
-    if(amount%20==0){
-        return true;
     }
 
-    // Return 20 euro bills ,50 euro bills or both 
-    temp = amount%50;
-    
-    if(temp%20==0){
-        return true;
-    }
-    
-    // In any other case the transaction can't be made
-    return false;
-}
 
-// This method checks if daily limit need to be reseted.
-// Used only in withdraw transactions. 
-function resetDailyLimit(id,userDate){
-    var sql = "select date from atm where id = ?"
-    var params = [id]
-    db.get(sql, params, (err, row) => {
-        if (err) {
-            // If db get won't work inform client
-            res.status(400).json({"error":err.message});
-            return;
-        }
-        else{
-            // If date of last transaction is different than today's date
-            // then limit needs to be reseted.
-            date = new Date();
-            today = (date.getDate()) + "/" + date.getMonth() + "/" + date.getFullYear();
-            if(userDate !== today){
-                db.run(
-                    `UPDATE atm set 
-                    daily_limit = COALESCE(?,daily_limit)
-                    WHERE id = ?`,
-                    [0, id],
-                    function (err, result) {
-                        if (err){
-                            console.log(err);
-                            console.log("Unexpected Error");
-                        }
-                        else{
-                            console.log("Limit reseted for user " + id)
-                        }
-                        return;
-                    });
-            }
-        }
-    });
-}
-
-// Checks if the new balance is positive 
-function isNewBalancePositive(balance, amount){
-    return balance - amount >=0;
-}
-
-function isLimitReached(limit, amount){
-    return limit + amount <=2000;
-}
 
 module.exports = router;

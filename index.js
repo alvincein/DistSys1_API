@@ -3,13 +3,13 @@ const app = express();
 const port = process.env.PORT || 8000;
 const path = require('path');
 const cors = require('cors');
+
+    // Enable cors requests
+    app.use(cors());
     
     var bodyParser = require("body-parser");
     app.use(bodyParser.urlencoded({ extended: false }));
     app.use(bodyParser.json());
-
-    // Enable cors requests
-    app.use(cors());
 
     // Set static folder
     app.use(express.static(path.join(__dirname, 'public')));
@@ -29,9 +29,16 @@ const cors = require('cors');
     // Actions' routes
     app.use('/api', require('./routes/api/actions'));
 
+    // RPC route
+    app.use('/', require('./routes/rpc/rpc'));
+
     // Default response for any other request
     app.use(function(req, res){
         res.status(404);
     });
+
+
+
+
 
 
